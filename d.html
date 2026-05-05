@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Burger House - Cardápio Digital</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="preloader" id="preloader">
+  <div class="preloader-inner">
+    <div class="preloader-icon">🍔</div>
+    <div class="preloader-bar"><div class="preloader-fill"></div></div>
+    <p>Carregando cardápio...</p>
+  </div>
+</div>
+
+<!-- ======================== CARDÁPIO PÚBLICO ======================== -->
+<div id="app" class="app">
+
+  <!-- HEADER -->
+  <header class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-logo-wrap">
+        <div class="hero-logo">🍔</div>
+        <div class="hero-pulse"></div>
+      </div>
+      <h1 class="hero-name" id="heroName">Burger House</h1>
+      <p class="hero-sub" id="heroSub">Hambúrgueres artesanais feitos com amor</p>
+      <div class="hero-chips">
+        <span class="chip chip-open" id="heroStatus"><span class="chip-dot"></span> Aberto</span>
+        <span class="chip">🕐 <span id="heroTime">30-45 min</span></span>
+        <span class="chip">⭐ 4.8</span>
+      </div>
+      <div class="hero-info-row">
+        <span id="heroAddr">📍 Rua das Delícias, 123</span>
+        <span id="heroPhone">📞 (11) 99999-9999</span>
+      </div>
+    </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,69.3C960,64,1056,64,1152,69.3C1248,75,1344,85,1392,90.7L1440,96L1440,120L0,120Z" fill="var(--bg)"/></svg>
+    </div>
+  </header>
+
+  <!-- SEARCH -->
+  <div class="search-sticky" id="searchSticky">
+    <div class="search-container">
+      <div class="search-box">
+        <svg class="search-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="O que você procura?" oninput="renderMenu()">
+        <button class="search-clear hidden" id="searchClear" onclick="clearSearch()">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <nav class="cat-bar" id="catBar"></nav>
+
+  <!-- PROMOS BANNER -->
+  <div class="promo-scroll" id="promoScroll">
+    <div class="promo-card promo-1">
+      <div class="promo-text">
+        <span class="promo-tag">🔥 PROMO</span>
+        <h3>Primeiro pedido?</h3>
+        <p>10% OFF com código <strong>BEMVINDO</strong></p>
+      </div>
+      <span class="promo-emoji">🎉</span>
+    </div>
+    <div class="promo-card promo-2">
+      <div class="promo-text">
+        <span class="promo-tag">🛵 FRETE</span>
+        <h3>Frete Grátis</h3>
+        <p>Pedidos acima de R$ 50</p>
+      </div>
+      <span class="promo-emoji">🆓</span>
+    </div>
+    <div class="promo-card promo-3">
+      <div class="promo-text">
+        <span class="promo-tag">⚡ COMBO</span>
+        <h3>Combo Família</h3>
+        <p>Economia de R$ 24,60</p>
+      </div>
+      <span class="promo-emoji">👨‍👩‍👧‍👦</span>
+    </div>
+  </div>
+
+  <!-- MENU SECTIONS -->
+  <main class="menu-main" id="menuMain"></main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <span>🍔</span>
+      <div>
+        <h4 id="footName">Burger House</h4>
+        <p id="footAddr">Rua das Delícias, 123</p>
+        <p id="footPhone">(11) 99999-9999</p>
+      </div>
+    </div>
+    <div class="footer-hours">
+      <h5>Horário de Funcionamento</h5>
+      <p>Seg a Sex: 11h - 23h</p>
+      <p>Sáb e Dom: 11h - 00h</p>
+    </div>
+    <div class="footer-social">
+      <button onclick="toast('Instagram','info')">📸</button>
+      <button onclick="toast('Facebook','info')">👍</button>
+      <button onclick="openWhatsAppDirect()">💬</button>
+    </div>
+    <p class="footer-copy">© 2025 Burger House · Cardápio Digital</p>
+    <button class="admin-link" onclick="showAdmin()">Área Administrativa</button>
+  </footer>
+
+</div>
+
+<!-- CART FLOAT BAR -->
+<div class="cart-bar hidden" id="cartBar" onclick="openCart()">
+  <div class="cart-bar-left">
+    <span class="cart-bar-qty" id="cartBarQty">0</span>
+    <span>Ver sacola</span>
+  </div>
+  <span class="cart-bar-total" id="cartBarTotal">R$ 0,00</span>
+</div>
+
+<!-- ======================== ITEM BOTTOM SHEET ======================== -->
+<div class="overlay hidden" id="itemOv" onclick="closeItem()"></div>
+<div class="bsheet hidden" id="itemBS">
+  <div class="bsheet-drag" onclick="closeItem()"><span></span></div>
+  <div class="bsheet-hero" id="bsHero"></div>
+  <div class="bsheet-content" id="bsContent"></div>
+  <div class="bsheet-footer" id="bsFooter"></div>
+</div>
+
+<!-- ======================== CART PANEL ======================== -->
+<div class="overlay hidden" id="cartOv" onclick="closeCart()"></div>
+<div class="side-panel hidden" id="cartPanel">
+  <div class="sp-header">
+    <button class="sp-back" onclick="closeCart()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3>Sua Sacola</h3>
+    <button class="sp-clear" id="cartClearBtn" onclick="clearCart()">Limpar</button>
+  </div>
+  <div class="sp-body" id="cartBody"></div>
+  <div class="sp-footer" id="cartFooter"></div>
+</div>
+
+<!-- ======================== CHECKOUT PANEL ======================== -->
+<div class="overlay hidden" id="checkOv" onclick="closeCheckout()"></div>
+<div class="side-panel hidden" id="checkPanel">
+  <div class="sp-header">
+    <button class="sp-back" onclick="closeCheckout()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3>Finalizar Pedido</h3>
+    <div></div>
+  </div>
+  <div class="sp-body" id="checkBody"></div>
+</div>
+
+<!-- ======================== TRACKING PANEL ======================== -->
+<div class="overlay hidden" id="trackOv" onclick="closeTracking()"></div>
+<div class="side-panel hidden" id="trackPanel">
+  <div class="sp-header">
+    <button class="sp-back" onclick="closeTracking()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h3>Acompanhar Pedido</h3>
+    <div></div>
+  </div>
+  <div class="sp-body" id="trackBody"></div>
+</div>
+
+<!-- ======================== ADMIN ======================== -->
+<div class="admin-overlay hidden" id="adminOv">
+  <div class="admin-login" id="admLogin">
+    <div class="admin-login-card">
+      <button class="adm-close-x" onclick="hideAdmin()">✕</button>
+      <div class="adm-lock">🔒</div>
+      <h2>Painel Administrativo</h2>
+      <p>Acesso restrito</p>
+      <div class="form-group">
+        <input type="password" id="admPassInput" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doAdmLogin()">
+      </div>
+      <button class="btn-primary btn-block" onclick="doAdmLogin()">Entrar</button>
+      <small class="adm-hint">Padrão: 1234</small>
+    </div>
+  </div>
+  <div class="admin-dashboard hidden" id="admDash">
+    <div class="adm-topbar">
+      <div class="adm-topbar-left">
+        <span class="adm-topbar-logo">🍔</span>
+        <div>
+          <h3>Painel Admin</h3>
+          <small id="admClock"></small>
+        </div>
+      </div>
+      <button class="adm-close-btn" onclick="hideAdmin()">✕ Fechar</button>
+    </div>
+    <div class="adm-nav" id="admNav">
+      <button class="adm-nav-btn active" data-t="pedidos" onclick="admGo('pedidos',this)">
+        <span>📋</span> Pedidos
+        <b class="adm-nav-badge" id="admPedidoBadge">0</b>
+      </button>
+      <button class="adm-nav-btn" data-t="produtos" onclick="admGo('produtos',this)"><span>📖</span> Produtos</button>
+      <button class="adm-nav-btn" data-t="categorias" onclick="admGo('categorias',this)"><span>🏷️</span> Categorias</button>
+      <button class="adm-nav-btn" data-t="caixa" onclick="admGo('caixa',this)"><span>💰</span> Caixa</button>
+      <button class="adm-nav-btn" data-t="config" onclick="admGo('config',this)"><span>⚙️</span> Config</button>
+    </div>
+    <div class="adm-body" id="admBody"></div>
+    <!-- Audio for notifications -->
+    <audio id="notifSound" preload="auto">
+      <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAABhYGBhY2VnaGhpamtsbW1ub3BxcXJzdHV1dnd3eHl5ent7fH19fn5/gICBgYKCg4OEhIWFhoaHh4eIiImJiYqKi4uMjIyNjY6Ojo+PkJCQkZGSkpKTk5SUlJWVlpaXl5iYmJmZmpqam5ucnJ2dnZ6en5+foKChoaGioqOjo6SkpaWlpqanp6eoqKmpqaqqq6urrKytra2urq+vr7CwsbGxsrKzs7O0tLW1tba2t7e3uLi5ubm6uru7u7y8vb29vr6/v7/AwMHBwcLCw8PDxMTFxcXGxsfHx8jIycnJysrLy8vMzM3Nzc7Oz8/P0NDR0dHS0tPT09TU1dXV1tbX19fY2NnZ2dra29vb3Nzd3d3e3t/f39/g4OHh4eLi4+Pj5OTl5eXm5ufn5+jo6enp6urr6+vs7O3t7e7u7+/v8PDx8fHy8vPz8/T09fX19vb39/f4+Pn5+fr6+/v7/Pz9/f3+/v//" type="audio/wav">
+    </audio>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="adm-modal-ov hidden" id="admMOv" onclick="closeAdmM()"></div>
+<div class="adm-modal hidden" id="admM">
+  <div class="adm-m-head"><h3 id="admMTitle"></h3><button onclick="closeAdmM()">✕</button></div>
+  <div class="adm-m-body" id="admMBody"></div>
+  <div class="adm-m-foot" id="admMFoot"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toastZone"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
